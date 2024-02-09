@@ -26,7 +26,7 @@ Installation
 
 1.  **Deploy PodInsights**:
     
-    ```kubectl apply -f https://github.com/cloudmedialab-uv/PodInsights/blob/main/deploy/k8s/metrics.yml```
+    ```kubectl apply -f https://raw.githubusercontent.com/cloudmedialab-uv/PodInsights/main/deploy/k8s/metrics.yml```
     
     This command creates a dedicated namespace and sets up all necessary resources for PodInsights.
     
