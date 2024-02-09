@@ -13,7 +13,7 @@ Features
 *   **Daemonset Deployment**: Ensures comprehensive coverage across all Kubernetes nodes.
 *   **Configurable Monitoring**: Users can specify which resources to monitor using configurable labels.
 *   **Internal Database Storage**: Metrics are stored in an internal MongoDB database for efficient data management.
-*   **API Access**: Provides an API for querying stored statistics. Documentation is available at [API Documentation](https://url.documentacion.api.com).
+*   **API Access**: Provides an API for querying stored statistics. Documentation is available at [API Documentation](https://github.com/cloudmedialab-uv/PodInsights/wiki/API-REFERENCE).
 
 Prerequisites
 -------------
@@ -77,4 +77,4 @@ example response:
 
 * * *
 
-For detailed API usage and documentation, please visit [API Documentation](https://url.documentacion.api.com).
+For detailed API usage and documentation, please visit [API Documentation](https://github.com/cloudmedialab-uv/PodInsights/wiki/API-REFERENCE).
