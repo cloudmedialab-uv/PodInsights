@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: metrics
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: metrics-sa
+  namespace: metrics
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metrics-rol
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch", "patch"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: metrics-crb
+subjects:
+- kind: ServiceAccount
+  name: metrics-sa
+  namespace: metrics
+roleRef:
+  kind: ClusterRole
+  name: metrics-rol
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: metrics-db
+  namespace: metrics
+spec:
+  serviceName: database
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - name: metrics-db
+        image: mongo:4.0.8
+        ports:
+        - containerPort: 27017
+        env:
+          - name: MONGO_INITDB_ROOT_USERNAME
+            value: admin
+          - name: MONGO_INITDB_ROOT_PASSWORD
+            value: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: metrics
+  labels:
+    app: database
+spec:
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 27017
+    targetPort: 27017
+    nodePort: 30100
+  selector:
+    app: database
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: metrics-app
+  namespace: metrics
+  labels:
+    app: metrics
+spec:
+  selector:
+    matchLabels:
+      app: metrics
+  template:
+    metadata:
+      labels:
+        app: metrics
+    spec:
+      serviceAccountName: metrics-sa
+      containers:
+      - name: metrics-app
+        image: routerdi1315.uv.es:33443/cloudmedialab/podinsights:0.0.5
+        env:
+        - name: STATS_INTERVAL_TIME
+          value: "500"
+        - name: LABEL
+          value: podkubemetrics
+        - name: USE_DOCKER
+          value: "true"
+        - name: DOCKER_STATS_INTERVAL_TIME
+          value: "2000"
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        ports:
+          - containerPort: 8080
+        volumeMounts:
+          - name: docker-socket
+            mountPath: /var/run/docker.sock
+          - name: cpuinfo
+            mountPath: /monitor/cpuinfo
+          - name: meminfo
+            mountPath: /monitor/meminfo
+          - name:  cgroups
+            mountPath: /monitor/cgroup
+      volumes:
+       - name: docker-socket
+         hostPath:
+           path: /var/run/docker.sock
+       - name: cpuinfo
+         hostPath:
+           path: /proc/cpuinfo
+       - name: meminfo
+         hostPath:
+           path: /proc/meminfo
+       - name: cgroups
+         hostPath:
+           path: /sys/fs/cgroup
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: metrics-service
+  namespace: metrics
+spec:
+  type: NodePort
+  selector: 
+    app: metrics
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30090

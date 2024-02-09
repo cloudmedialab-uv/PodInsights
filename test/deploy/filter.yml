@@ -1,0 +1,8 @@
+apiVersion: k8sidecar.io/v1
+kind: Filter
+metadata:
+  name: datamesh
+spec:
+  sidecars:
+    - image: "routerdi1315.uv.es:33443/sidecar/datamesh-sidecar:2.0.10"
+      name: "datamesh"

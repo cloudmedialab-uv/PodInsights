@@ -1,0 +1,51 @@
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: trigger
+  annotations:
+     description: "Trigger used to send events"
+spec:
+  broker: video-coding-broker
+  filter:
+    attributes:
+      type: encoder
+  subscriber:
+    ref:
+     apiVersion: serving.knative.dev/v1
+     kind: Service
+     name: ffmpeg-fn
+    uri: /ffmpeg-fn
+---
+kind: Service
+apiVersion: serving.knative.dev/v1
+metadata:
+  name: ffmpeg-fn
+  labels:
+    datamesh: "sidecar"
+spec:
+  template:
+    metadata:
+      name: ffmpeg-fn-v2
+      annotations:
+         autoscaling.knative.dev/metric: "concurrency"
+         autoscaling.knative.dev/target: "1"
+         autoscaling.knative.dev/minScale: "4"
+         autoscaling.knative.dev/maxScale: "4"
+         autoscaling.knative.dev/target-utilization-percentage: "100"
+      labels:
+        podkubemetrics: "true"
+    spec:
+      containerConcurrency: 1
+      containers:
+        - image: routerdi1315.uv.es:33443/video-coding/ffmpeg-fn-noacc:3.2.5
+          env:
+            - name: SERVICE_PORT
+              value: "8080"
+            - name: SERVICE_PATH
+              value: "/ffmpeg-fn"
+            - name: HEALTH_PATH
+              value: "/health"
+            - name: METRICS_PATH
+              value: "/metrics"
+            - name: LOG_LEVEL
+              value: "DEBUG"
