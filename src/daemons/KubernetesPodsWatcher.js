@@ -31,7 +31,6 @@ class KubernetesPodsWatcher {
 
 			this.pods = items.map((pod) => {
 				if (pod.status.containerStatuses.length > 1) {
-					console.log("sereverless container");
 					const id = pod.status.containerStatuses
 						.find((container) =>
 							container.name.startsWith("user-container")
@@ -44,7 +43,6 @@ class KubernetesPodsWatcher {
 						), */
 					};
 				} else {
-					console.log("normal deployment");
 					// Normal Container
 					return {
 						id: pod.status.containerStatuses[0].containerID.replace(
@@ -57,9 +55,6 @@ class KubernetesPodsWatcher {
 					};
 				}
 			});
-			if(this.pods.length > 0){
-				console.log(this.pods);
-			}
 		} catch (error) {
 			console.error(error);
 		}

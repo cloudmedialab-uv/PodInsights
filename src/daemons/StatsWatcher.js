@@ -1,5 +1,5 @@
 import Stats from "../models/stats.js";
-import { promises as fs } from "fs";
+import { promises as fs, stat } from "fs";
 import { exec } from "child_process";
 
 import path from "path";
@@ -10,13 +10,10 @@ import path from "path";
 const CPU_INFO_DIR = "/monitor/cpuinfo";
 
 const BASE_CPU_DIR = "/monitor/cgroup/cpu/kubepods.slice";
-const BASE_MEM_DIR = "/monitor/cgroup/mem/kubepods.slice";
+const BASE_MEM_DIR = "/monitor/cgroup/memory/kubepods.slice";
 
 const CPU_FILE = "cpuacct.usage";
 const MEM_FILE = "memory.usage_in_bytes";
-
-
-//const BASE_MEM_DIR = "/cgroup/system.slice";
 
 const CGROUPS_TYPE = true;
 
@@ -107,7 +104,7 @@ class StatsWatcher {
 			const match = content.match(/usage_usec (\d+)/);
 			return parseInt(match[1], 10);
 		} catch (err) {
-			console.error("Error readCpuUsage " + err);
+			console.error("Error readMemUsage ", err);
 		}
 	}
 
@@ -125,11 +122,10 @@ class StatsWatcher {
 			}
 
 			return mem_usec - lastData.mem_usec
-		} catch (error) {
-			console.error("Error getCPU", error);
+		} catch (err) {
+			console.error("Error getMemUsage", err);
 		}
 	}
-
 
 	async getCpuPercentage(container) {
 		try {
@@ -149,19 +145,18 @@ class StatsWatcher {
 			const delta_time = now - lastData.time;
 
 			return (delta_usec / (delta_time * 1000 * this.cores))/10;
-		} catch (error) {
-			console.error("Error getCPU", error);
+		} catch (err) {
+			console.error("Error getCPU", err);
 		}
 	}
-
 
 	async getContainerStats(container) {
 
 		const cpu_percentaje = await this.getCpuPercentage(container);
 		const mem_usage = await this.getMemUsage(container)
 
-		if(!cpu_percentaje) {
-			return {err: "No cpu usage"}
+		if(!cpu_percentaje && !mem_usage) {
+			return { err: "no cpu usage"}
 		}
 		return { cpuPercent: cpu_percentaje, memUsage: mem_usage }
 	}
@@ -180,9 +175,11 @@ class StatsWatcher {
 					};
 				
 					await new Stats(stats).save();
+				}else {
+					console.log(stats.err)
 				}
 			} catch (err) {
-				console.log(err);
+				console.error(err);
 			}
 		});
 	}

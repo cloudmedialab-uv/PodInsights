@@ -5,7 +5,8 @@ import router from "./routers/api.js";
 import KubernetesPodsWatcher from "./daemons/KubernetesPodsWatcher.js";
 import DockerStatsWatcher from "./daemons/DockerStatsWatcher.js";
 import StatsWatcher from "./daemons/StatsWatcher.js";
-
+import swaggerUi from "swagger-ui-express"
+import swaggerJsdoc from "swagger-jsdoc";
 
 
 //LOAD ENVs
@@ -22,6 +23,7 @@ const password = process.env.DB_PASSWORD || "password";
 const nodeName = process.env.NODE_NAME || "node_name";
 
 console.log("NODO: " + nodeName)
+
 const app = express();
 const swaggerOptions = {
 	definition: {
@@ -53,9 +55,6 @@ app.use(cors());
 app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 app.use("/stats", router);
-
-//app.use("/api/v1")
-
 
 //CONNECT TO DB
 mongoose.connect(url, {

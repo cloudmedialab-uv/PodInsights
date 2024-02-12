@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { DeleteStats, GetStats } from "../controllers/stats.controller";
-import { DeleteDockerStats, GetDockerStats } from "../controllers/dockerStats.controller";
+import { DeleteStats, GetStats } from "../controllers/stats.controller.js";
+import { DeleteDockerStats, GetDockerStats } from "../controllers/dockerStats.controller.js";
 const router = Router();
 
 /**

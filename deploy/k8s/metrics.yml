@@ -94,7 +94,7 @@ spec:
       serviceAccountName: metrics-sa
       containers:
       - name: metrics-app
-        image: cloudmedialab/podinsights:1.0.0
+        image: routerdi1315.uv.es:33443/cloudmedialab/podinsights:1.0.20.alpha
         env:
         - name: STATS_INTERVAL_TIME
           value: "500"
