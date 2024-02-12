@@ -166,26 +166,6 @@ class StatsWatcher {
 		return { cpuPercent: cpu_percentaje, memUsage: mem_usage }
 	}
 
-	async getNodeStats(file) {
-		const data = await fs.readFile(file, "utf8");
-		const lines = data.split("\n");
-
-		let info = {};
-
-		lines.forEach((line) => {
-			let parts = line.split(":");
-
-			if (parts.length === 2) {
-				let key = parts[0].trim();
-				let value = parts[1].trim();
-
-				info[key] = value;
-			}
-		});
-
-		return info;
-	}
-
 	async updateStats() {
 		this.watcher.pods.forEach(async ({ id }) => {
 			try {
