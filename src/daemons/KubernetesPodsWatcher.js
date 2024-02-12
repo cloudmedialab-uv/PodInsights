@@ -31,24 +31,23 @@ class KubernetesPodsWatcher {
 
 			this.pods = items.map((pod) => {
 				if (pod.status.containerStatuses.length > 1) {
-					const id = pod.status.containerStatuses
+					// Serverless Container
+					const [runtime, id] = pod.status.containerStatuses
 						.find((container) =>
 							container.name.startsWith("user-container")
-						)
-						.containerID.replace("docker://", "");
+						).containerID.split("://")
+
 					return {
-						id: id,
+						id, runtime
 						/* gpu: pod.spec.containers.some(
 							(pod) => pod?.resources?.requests["nvidia.com/gpu"]
 						), */
 					};
 				} else {
 					// Normal Container
+					const [runtime, id] = pod.status.containerStatuses[0].containerID.split("://")
 					return {
-						id: pod.status.containerStatuses[0].containerID.replace(
-							"docker://",
-							""
-						),
+						id, runtime,
 						/* gpu: pod.spec.containers.some(
 							(pod) => pod?.resources?.requests["nvidia.com/gpu"]
 						), */

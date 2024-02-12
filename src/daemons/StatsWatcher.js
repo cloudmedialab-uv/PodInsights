@@ -9,8 +9,14 @@ import path from "path";
 
 const CPU_INFO_DIR = "/monitor/cpuinfo";
 
-const BASE_CPU_DIR = "/monitor/cgroup/cpu/kubepods.slice";
-const BASE_MEM_DIR = "/monitor/cgroup/memory/kubepods.slice";
+const BASE_CPU_DIR = "/monitor/cgroup/cpu/";
+const BASE_MEM_DIR = "/monitor/cgroup/memory/";
+
+const RUNTIME_DIR = {
+	"docker": "kubepods.slice",
+	"containerd": "system.slice",
+}
+
 
 const CPU_FILE = "cpuacct.usage";
 const MEM_FILE = "memory.usage_in_bytes";
@@ -70,10 +76,10 @@ class StatsWatcher {
 		return res.find((p) => p);
 	}
 
-	async readCpuUsage(dockerDir) {
+	async readCpuUsage(dir) {
 		try {
 			const content = await fs.readFile(
-				path.join(dockerDir, CPU_FILE),
+				path.join(dir, CPU_FILE),
 				"utf8"
 			);
 
@@ -89,10 +95,10 @@ class StatsWatcher {
 		}
 	}
 
-	async readMemUsage(dockerDir) {
+	async readMemUsage(dir) {
 		try {
 			const content = await fs.readFile(
-				path.join(dockerDir, MEM_FILE),
+				path.join(dir, MEM_FILE),
 				"utf8"
 			);
 
@@ -108,34 +114,40 @@ class StatsWatcher {
 		}
 	}
 
-	async getMemUsage(container) {
+	async getMemUsage(container, runtime) {
 		try {
-			const dockerDir = await this.getFiles(BASE_MEM_DIR, container);
-			const mem_usec = await this.readMemUsage(dockerDir);
 
-			const lastData = this.memMap.get(dockerDir);
+			const BASE_DIR = path.join(BASE_MEM_DIR,RUNTIME_DIR[runtime])
 
-			this.memMap.set(dockerDir, { mem_usec: mem_usec });
+			const dir = await this.getFiles(BASE_DIR, container);
+			const mem_usec = await this.readMemUsage(dir);
+
+			const lastData = this.memMap.get(dir);
+
+			this.memMap.set(dir, { mem_usec: mem_usec });
 
 			if (!lastData) {
 				return 0;
 			}
 
-			return mem_usec - lastData.mem_usec
+			return { usage: mem_usec - lastData.mem_usec, current: mem_usec}
 		} catch (err) {
 			console.error("Error getMemUsage", err);
 		}
 	}
 
-	async getCpuPercentage(container) {
+	async getCpuPercentage(container,runtime) {
 		try {
-			const dockerDir = await this.getFiles(BASE_CPU_DIR, container);
+
+			const BASE_DIR = path.join(BASE_CPU_DIR,RUNTIME_DIR[runtime])
+
+			const dir = await this.getFiles(BASE_DIR, container);
 			const now = Date.now();
-			const usage_usec_1 = await this.readCpuUsage(dockerDir);
+			const usage_usec_1 = await this.readCpuUsage(dir);
 
-			const lastData = this.cpuMap.get(dockerDir);
+			const lastData = this.cpuMap.get(dir);
 
-			this.cpuMap.set(dockerDir, { time: now, usage_usec: usage_usec_1 });
+			this.cpuMap.set(dir, { time: now, usage_usec: usage_usec_1 });
 
 			if (!lastData) {
 				return 0;
@@ -150,10 +162,10 @@ class StatsWatcher {
 		}
 	}
 
-	async getContainerStats(container) {
+	async getContainerStats(container, runtime) {
 
-		const cpu_percentaje = await this.getCpuPercentage(container);
-		const mem_usage = await this.getMemUsage(container)
+		const cpu_percentaje = await this.getCpuPercentage(container, runtime);
+		const mem_usage = await this.getMemUsage(container, runtime)
 
 		if(!cpu_percentaje && !mem_usage) {
 			return { err: "no cpu usage"}
@@ -162,9 +174,9 @@ class StatsWatcher {
 	}
 
 	async updateStats() {
-		this.watcher.pods.forEach(async ({ id }) => {
+		this.watcher.pods.forEach(async ({ id, runtime }) => {
 			try {
-				let stats = await this.getContainerStats(id);
+				let stats = await this.getContainerStats(id, runtime);
 
 				if(!stats.err){	
 					stats = {
