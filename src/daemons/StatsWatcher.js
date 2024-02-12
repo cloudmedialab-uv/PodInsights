@@ -10,7 +10,11 @@ import path from "path";
 const CPU_INFO_DIR = "/monitor/cpuinfo";
 
 const BASE_CPU_DIR = "/monitor/cgroup/cpu/kubepods.slice";
+const BASE_MEM_DIR = "/monitor/cgroup/mem/kubepods.slice";
+
 const CPU_FILE = "cpuacct.usage";
+const MEM_FILE = "memory.usage_in_bytes";
+
 
 //const BASE_MEM_DIR = "/cgroup/system.slice";
 
@@ -25,6 +29,7 @@ class StatsWatcher {
 		}
 
 		this.cpuMap = new Map();
+		this.memMap = new Map();
 		this.watcher = watcher;
 		this.nodeName = nodeName;
 		this.interval = interval;
@@ -87,6 +92,45 @@ class StatsWatcher {
 		}
 	}
 
+	async readMemUsage(dockerDir) {
+		try {
+			const content = await fs.readFile(
+				path.join(dockerDir, MEM_FILE),
+				"utf8"
+			);
+
+			if (CGROUPS_TYPE) {
+				//cgroup v1
+				return parseInt(content, 10);
+			}
+			//cgroup v2
+			const match = content.match(/usage_usec (\d+)/);
+			return parseInt(match[1], 10);
+		} catch (err) {
+			console.error("Error readCpuUsage " + err);
+		}
+	}
+
+	async getMemUsage(container) {
+		try {
+			const dockerDir = await this.getFiles(BASE_MEM_DIR, container);
+			const mem_usec = await this.readMemUsage(dockerDir);
+
+			const lastData = this.memMap.get(dockerDir);
+
+			this.memMap.set(dockerDir, { mem_usec: mem_usec });
+
+			if (!lastData) {
+				return 0;
+			}
+
+			return mem_usec - lastData.mem_usec
+		} catch (error) {
+			console.error("Error getCPU", error);
+		}
+	}
+
+
 	async getCpuPercentage(container) {
 		try {
 			const dockerDir = await this.getFiles(BASE_CPU_DIR, container);
@@ -110,13 +154,16 @@ class StatsWatcher {
 		}
 	}
 
+
 	async getContainerStats(container) {
+
 		const cpu_percentaje = await this.getCpuPercentage(container);
+		const mem_usage = await this.getMemUsage(container)
 
 		if(!cpu_percentaje) {
 			return {err: "No cpu usage"}
 		}
-		return { cpuPercent: cpu_percentaje }
+		return { cpuPercent: cpu_percentaje, memUsage: mem_usage }
 	}
 
 	async getNodeStats(file) {
