@@ -38,7 +38,7 @@ Usage
 
 ### Labeling Resources for Monitoring
 
-To monitor a Kubernetes resource, add the `monitorthispod: "true"` label. For example, to monitor an Nginx deployment:
+To monitor a Kubernetes resource, add the `podkubemetrics: "true"` label. For example, to monitor an Nginx deployment:
 
 
 ```
@@ -46,10 +46,12 @@ apiVersion: apps/v1
 kind: Deployment 
 metadata:   
     name: nginx   
-    namespace: default   
-    labels:     
-        monitorthispod: "true" 
-spec:   ...
+    namespace: default    
+spec:
+    template:
+    metadata:
+      labels:
+        podkubemetrics: "true"
 ```
 
 ### Querying Metrics
