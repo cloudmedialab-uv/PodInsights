@@ -1,6 +1,6 @@
 import { getAllStats, deleteAllStats } from "../helpers/stats.js";
 
-const GetStats= async(req, res) => {
+const GetStats = async(req, res) => {
 	try {
 		const { from, to } = req.query;
 

@@ -1,6 +1,5 @@
 import Docker from "dockerode";
 import DockerStats from "../models/dockerStats.js";
-import { promises as fs } from "fs";
 
 class DockerStatsWatcher {
 	static instance;
@@ -39,6 +38,7 @@ class DockerStatsWatcher {
 				cpuPercent: RESULT_CPU_USAGE,
 				memUsage: String(stats.memory_stats.usage),
 				memLimit: String(stats.memory_stats.limit),
+				networks: stats.networks,
 				err: null
 			};
 		} catch (err) {

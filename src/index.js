@@ -4,17 +4,20 @@ import cors from "cors";
 import router from "./routers/api.js";
 import KubernetesPodsWatcher from "./daemons/KubernetesPodsWatcher.js";
 import DockerStatsWatcher from "./daemons/DockerStatsWatcher.js";
+import NodeStatsWatcher from "./daemons/NodeStatsWatcher.js";
 import StatsWatcher from "./daemons/StatsWatcher.js";
 import swaggerUi from "swagger-ui-express"
 import swaggerJsdoc from "swagger-jsdoc";
 
 
 //LOAD ENVs
-const useDocker = Boolean(process.env.USE_DOCKER) || false
+const useNodeStats = Boolean(process.env.USE_NODE_STATS) || false
+const useDockerStats = Boolean(process.env.USE_DOCKER) || false
 const port = process.env.PORT || "8080";
 const label = process.env.LABEL || "metrics";
 const statsInterval = process.env.STATS_INTERVAL_TIME || 5000;
 const dockerStatsInterval = process.env.DOCKER_STATS_INTERVAL_TIME || 5000;
+const nodeStatsInterval = process.env.NODE_STATS_INTERVAL_TIME || 5000;
 const watchInterval = process.env.WATCH_INTERVAL_TIME || 5000;
 const url =
 process.env.DB_URL || "mongodb://database.metrics.svc.cluster.local";
@@ -44,7 +47,11 @@ const swaggerSpecs = swaggerJsdoc(swaggerOptions);
 const watcher = new KubernetesPodsWatcher(label, nodeName);
 watcher.start(watchInterval);
 
-if(useDocker){
+if(useNodeStats){
+	new NodeStatsWatcher(nodeName, nodeStatsInterval).start()
+}
+
+if(useDockerStats){
 	new DockerStatsWatcher(watcher, nodeName, dockerStatsInterval).start();
 }
 
