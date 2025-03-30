@@ -1,4 +1,4 @@
-TAG="1.2.0"
+TAG="1.0.0"
 
-docker build . -t cloudmedialab/podinsights:$TAG
-docker push cloudmedialab/podinsights:$TAG
+docker build . -t  andonisalcedo/podinsights:$TAG
+docker push andonisalcedo/podinsights:$TAG

@@ -6,6 +6,7 @@ Introduction
 
 PodInsights is a centralized monitoring system for Kubernetes nodes. It deploys a daemonset across each node to monitor Kubernetes resources marked with a configurable label. PodInsights offers millisecond-level monitoring and can measure CPU and memory usage more precisely than traditional tools.
 
+
 Features
 --------
 
@@ -14,6 +15,29 @@ Features
 *   **Configurable Monitoring**: Users can specify which resources to monitor using configurable labels.
 *   **Internal Database Storage**: Metrics are stored in an internal MongoDB database for efficient data management.
 *   **API Access**: Provides an API for querying stored statistics. Documentation is available at [API Documentation](https://github.com/cloudmedialab-uv/PodInsights/wiki/API-REFERENCE).
+
+Cite
+------------
+
+```json
+{
+  "@inproceedings": "10.1145/3685243.3685281",
+  "author": "Navarro, Andoni Salcedo and Garcia-Pineda, Miguel and Gutierrez-Aguado, Juan",
+  "title": "PodInsights: a millisecond pod metric collector for Kubernetes",
+  "year": "2025",
+  "isbn": "9798400717338",
+  "publisher": "Association for Computing Machinery",
+  "address": "New York, NY, USA",
+  "url": "https://doi.org/10.1145/3685243.3685281",
+  "doi": "10.1145/3685243.3685281",
+  "articleno": "16",
+  "numpages": "4",
+  "keywords": "E-applications and case uses, Kubernetes, cloud computing, monitoring",
+  "location": "Praia, Cape Verde",
+  "series": "EATIS 2024"
+}
+```
+
 
 Prerequisites
 -------------

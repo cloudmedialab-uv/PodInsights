@@ -94,13 +94,15 @@ spec:
       serviceAccountName: metrics-sa
       containers:
       - name: metrics-app
-        image: cloudmedialab/podinsights:1.2.0
+        image: andonisalcedo/podinsights:1.0.0
         env:
         - name: STATS_INTERVAL_TIME
-          value: "500"
+          value: "50000"
         - name: LABEL
           value: podkubemetrics
         - name: USE_DOCKER
+          value: "false"
+        - name: USE_NODE_STATS
           value: "true"
         - name: DOCKER_STATS_INTERVAL_TIME
           value: "2000"
@@ -117,6 +119,8 @@ spec:
             mountPath: /monitor/cpuinfo
           - name: meminfo
             mountPath: /monitor/meminfo
+          - name:  statsinfo
+            mountPath: /monitor/stats
           - name:  cgroups
             mountPath: /monitor/cgroup
       volumes:
@@ -129,6 +133,9 @@ spec:
        - name: meminfo
          hostPath:
            path: /proc/meminfo
+       - name: statsinfo
+         hostPath:
+           path: /proc/stat
        - name: cgroups
          hostPath:
            path: /sys/fs/cgroup
