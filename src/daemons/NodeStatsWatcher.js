@@ -4,12 +4,36 @@ import NodeStats from "../models/nodeStats.js";
 
 const MEMINFO_PATH = "/monitor/meminfo";      
 const PROC_STAT_PATH = "/monitor/stats";   
+const NET_STATS_PATH = "/monitor/netstats";   
 
 class NodeStatsWatcher {
   constructor(nodeName, interval = 5000) {
     this.nodeName = nodeName;
     this.interval = interval;
     this.lastCpuStats = null;
+  }
+
+
+  async readNetworkStats() {
+    try {  
+       const dataRx = await fs.readFile(NET_STATS_PATH+"/rx_bytes", "utf8");
+       const dataTx = await fs.readFile(NET_STATS_PATH+"/tx_bytes", "utf8");
+  
+   
+        if (!dataRx || !dataTx) {
+          throw new Error("Unable to parse network stats"); 
+        }
+
+        const rx =  parseInt(dataRx)
+        const tx =  parseInt(dataTx)
+ 
+        return { 'rx' : rx, 'tx': tx };
+
+    } catch (err) {
+      console.log("Error reading networking stats:", err);
+      return { 'rx': -1, 'tx': -1 };
+    }
+
   }
 
   async readMemStats() {
@@ -69,11 +93,14 @@ class NodeStatsWatcher {
   async collectStats() {
     const { memTotal, memUsed } = await this.readMemStats();
     const cpuUsage = await this.computeCpuUsage();
+    const networkStats =  await this.readNetworkStats()  
+ 
     return {
       nodeName: this.nodeName,
       memTotal,      
       memUsed,       
       cpuUsage,  
+      networkStats,
       createdAt: Date.now(),
     };
   }

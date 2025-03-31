@@ -123,6 +123,8 @@ spec:
             mountPath: /monitor/stats
           - name:  cgroups
             mountPath: /monitor/cgroup
+          - name: netstats
+            mountPath: /monitor/netstats
       volumes:
        - name: docker-socket
          hostPath:
@@ -139,6 +141,10 @@ spec:
        - name: cgroups
          hostPath:
            path: /sys/fs/cgroup
+       - name: netstats
+         hostPath:
+           path: /sys/class/net/ens3/statistics
+           type: Directory
 
 ---
 kind: Service
