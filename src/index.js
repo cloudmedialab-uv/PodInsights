@@ -11,8 +11,9 @@ import swaggerJsdoc from "swagger-jsdoc";
 
 
 //LOAD ENVs
-const useNodeStats = Boolean(process.env.USE_NODE_STATS) || false
-const useDockerStats = Boolean(process.env.USE_DOCKER) || false
+const useNodeStats = JSON.parse(process.env.USE_NODE_STATS || "false");
+const useDockerStats = JSON.parse(process.env.USE_DOCKER || "false");
+
 const port = process.env.PORT || "8080";
 const label = process.env.LABEL || "metrics";
 const statsInterval = process.env.STATS_INTERVAL_TIME || 5000;
@@ -49,10 +50,12 @@ watcher.start(watchInterval);
 
 if (useNodeStats) {
 	new NodeStatsWatcher(nodeName, nodeStatsInterval).start()
+	console.log("USING NODE STATS")
 }
 
 if (useDockerStats) {
 	new DockerStatsWatcher(watcher, nodeName, dockerStatsInterval).start();
+	console.log("USING DOCKER STATS")
 }
 
 new StatsWatcher(watcher, nodeName, statsInterval).start();
