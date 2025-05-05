@@ -59,7 +59,7 @@ class KubernetesPodsWatcher {
 		}
 	}
 
-	start(intervalTime = 5000) {
+	async start(intervalTime = 5000) {
 		this.interval = setInterval(async () => {
 			await this.updatePods();
 		}, intervalTime);

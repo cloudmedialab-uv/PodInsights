@@ -1,4 +1,3 @@
-// controllers/nodeStats.controller.js
 import { getAllNodeStats, deleteAllNodeStats } from "../helpers/nodeStats.js";
 
 const GetNodeStats = async (req, res) => {

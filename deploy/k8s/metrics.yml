@@ -94,18 +94,16 @@ spec:
       serviceAccountName: metrics-sa
       containers:
       - name: metrics-app
-        image: andonisalcedo/podinsights:1.0.0
+        image: andonisalcedo/podinsights:1.1.0.beta2
         env:
         - name: STATS_INTERVAL_TIME
-          value: "50000"
+          value: "500"
         - name: LABEL
           value: podkubemetrics
         - name: USE_DOCKER
           value: "false"
         - name: USE_NODE_STATS
-          value: "true"
-        - name: DOCKER_STATS_INTERVAL_TIME
-          value: "2000"
+          value: "false"
         - name: NODE_NAME
           valueFrom:
             fieldRef:
@@ -117,14 +115,16 @@ spec:
             mountPath: /var/run/docker.sock
           - name: cpuinfo
             mountPath: /monitor/cpuinfo
-          - name: meminfo
-            mountPath: /monitor/meminfo
-          - name:  statsinfo
-            mountPath: /monitor/stats
+          - name: memstats
+            mountPath: /monitor/memstats
+          - name:  cpustats
+            mountPath: /monitor/cpustats
           - name:  cgroups
             mountPath: /monitor/cgroup
-          - name: netstats
-            mountPath: /monitor/netstats
+         # - name: netstats
+         #   mountPath: /monitor/netstats
+          - name:  proc
+            mountPath: /monitor/proc
       volumes:
        - name: docker-socket
          hostPath:
@@ -132,18 +132,22 @@ spec:
        - name: cpuinfo
          hostPath:
            path: /proc/cpuinfo
-       - name: meminfo
+       - name: memstats
          hostPath:
            path: /proc/meminfo
-       - name: statsinfo
+       - name: cpustats
          hostPath:
            path: /proc/stat
+       #- name: netstats
+       #  hostPath:
+       #    path: /sys/class/net/ens3/statistics
+       #    type: Directory
        - name: cgroups
          hostPath:
            path: /sys/fs/cgroup
-       - name: netstats
+       - name: proc
          hostPath:
-           path: /sys/class/net/ens3/statistics
+           path: /proc
            type: Directory
 
 ---

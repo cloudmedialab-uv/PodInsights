@@ -4,7 +4,7 @@ import DockerStats from "../models/dockerStats.js";
 class DockerStatsWatcher {
 	static instance;
 
-	constructor(watcher, nodeName) {
+	constructor(watcher, nodeName, interval = 5000) {
 		if (DockerStatsWatcher.instance) {
 			return DockerStatsWatcher.instance;
 		}
@@ -12,6 +12,7 @@ class DockerStatsWatcher {
 		this.docker = new Docker();
 		this.watcher = watcher;
 		this.nodeName = nodeName;
+		this.interval = interval;
 		DockerStatsWatcher.instance = this;
 	}
 
@@ -50,7 +51,6 @@ class DockerStatsWatcher {
 		this.watcher.pods.forEach(async ({ id }) => {
 			try {
 				const container = this.docker.getContainer(id);
-
 				let stats = await this.getContainerStats(container);
 
 				stats = {
@@ -72,14 +72,14 @@ class DockerStatsWatcher {
 		});
 	}
 
-	start(intervalTime = 5000) {
-		this.interval = setInterval(async () => {
+	async start() {
+		this.loop = setInterval(async () => {
 			await this.updateStats();
-		}, intervalTime);
+		}, this.interval);
 	}
 
 	stop() {
-		clearInterval(this.interval);
+		clearInterval(this.loop);
 	}
 }
 
