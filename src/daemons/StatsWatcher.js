@@ -10,7 +10,11 @@ const CPU_INFO_DIR = "/monitor/cpuinfo";
 
 const BASE_CPU_DIR = "/monitor/cgroup/cpu/";
 const BASE_MEM_DIR = "/monitor/cgroup/memory/";
+const BASE_PROC_DIR = "/monitor/proc"
 
+const NET_INFO_FILE = "cgroup.procs";
+
+const NET_FILE = "/net/dev"
 
 const CPU_FILE = "cpuacct.usage";
 const MEM_FILE = "memory.usage_in_bytes";
@@ -36,16 +40,16 @@ class StatsWatcher {
 
 	async getCpuCores() {
 		try {
-		  const text = await fs.readFile(CPU_INFO_DIR, "utf8");
-		  return text
-			.split("\n")
-			.filter(line => line.trim().startsWith("processor"))
-			.length;
+			const text = await fs.readFile(CPU_INFO_DIR, "utf8");
+			return text
+				.split("\n")
+				.filter(line => line.trim().startsWith("processor"))
+				.length;
 		} catch (err) {
-		  console.error("No pude leer CPU_INFO_DIR:", err);
-		  throw err;
+			console.error("No pude leer CPU_INFO_DIR:", err);
+			throw err;
 		}
-	  }
+	}
 
 	async getFiles(dir, file) {
 		let files = await fs.readdir(dir, { withFileTypes: true });
@@ -64,6 +68,40 @@ class StatsWatcher {
 		let res = await Promise.all(promises);
 		return res.find((p) => p);
 	}
+
+	async getProcId() {
+		try {
+			const text = await fs.readFile(
+				path.join(BASE_CPU_DIR, NET_INFO_FILE),
+				"utf8"
+			);
+			return text.trim()
+		} catch (err) {
+			console.error("No pude leer PROC ID:", err);
+			throw err;
+		}
+	}
+
+	async readNetStats(iface = 'eth0') {
+		const procId = await this.getProcId()
+		const data = await fs.readFile(
+			path.join(BASE_PROC_DIR, procId, NET_FILE),
+			'utf8'
+		);
+		const lines = data.trim().split('\n');
+		for (const line of lines.slice(2)) {
+			const trimmed = line.trim();
+			if (!trimmed) continue;
+			if (trimmed.startsWith(iface + ':')) {
+				const parts = trimmed.split(/[:\s]+/);
+				const rxBytes = parseInt(parts[1], 10);
+				const txBytes = parseInt(parts[9], 10);
+				return { rxBytes, txBytes };
+			}
+		}
+		throw new Error(`Interfaz ${iface} no encontrada en ${path}`);
+	}
+
 
 	async readCpuUsage(dir) {
 		try {
@@ -116,13 +154,13 @@ class StatsWatcher {
 				return 0;
 			}
 
-			return { usage: mem_usec - lastData.mem_usec, current: mem_usec}
+			return { usage: mem_usec - lastData.mem_usec, current: mem_usec }
 		} catch (err) {
 			console.error("Error getMemUsage", err);
 		}
 	}
 
-	async getCpuPercentage(container,runtime) {
+	async getCpuPercentage(container) {
 		try {
 
 			const dir = await this.getFiles(BASE_CPU_DIR, container);
@@ -140,21 +178,24 @@ class StatsWatcher {
 			const delta_usec = usage_usec_1 - lastData.usage_usec;
 			const delta_time = now - lastData.time;
 
-			return (delta_usec / (delta_time * 1000 * this.cores))/10;
+			return (delta_usec / (delta_time * 1000 * this.cores)) / 10;
 		} catch (err) {
 			console.error("Error getCPU", err);
 		}
 	}
 
+
+
 	async getContainerStats(container, runtime) {
 
-		const cpu_percentaje = await this.getCpuPercentage(container, runtime);
+		const cpu_percentaje = await this.getCpuPercentage(container);
 		const mem_usage = await this.getMemUsage(container, runtime)
+		const net_stats = await this.readNetStats()
 
-		if(!cpu_percentaje && !mem_usage) {
-			return { err: "no cpu usage"}
+		if (!cpu_percentaje && !mem_usage) {
+			return { err: "no cpu usage" }
 		}
-		return { cpuPercent: cpu_percentaje, memUsage: mem_usage }
+		return { cpuPercent: cpu_percentaje, memUsage: mem_usage, netStats: net_stats }
 	}
 
 	async updateStats() {
@@ -162,16 +203,16 @@ class StatsWatcher {
 			try {
 				let stats = await this.getContainerStats(id, runtime);
 
-				if(!stats.err){	
+				if (!stats.err) {
 					stats = {
 						...stats,
 						nodeName: this.nodeName,
 						pod: id,
 						createdAt: Date.now(),
 					};
-				
+
 					await new Stats(stats).save();
-				}else {
+				} else {
 					console.log(stats.err)
 				}
 			} catch (err) {

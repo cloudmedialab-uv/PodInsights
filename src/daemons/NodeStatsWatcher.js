@@ -1,4 +1,3 @@
-// daemons/NodeStatsWatcher.js
 import { promises as fs } from "fs";
 import NodeStats from "../models/nodeStats.js";
 
@@ -18,29 +17,6 @@ class NodeStatsWatcher {
     this.interval = interval;
     this.lastCpuStats = null;
     NodeStatsWatcher.instance = this;
-  }
-
-
-  async readNetworkStats() {
-    try {
-      const dataRx = await fs.readFile(NET_STATS_PATH + "/rx_bytes", "utf8");
-      const dataTx = await fs.readFile(NET_STATS_PATH + "/tx_bytes", "utf8");
-
-
-      if (!dataRx || !dataTx) {
-        throw new Error("Unable to parse network stats");
-      }
-
-      const rx = parseInt(dataRx)
-      const tx = parseInt(dataTx)
-
-      return { 'rx': rx, 'tx': tx };
-
-    } catch (err) {
-      console.log("Error reading networking stats:", err);
-      return { 'rx': -1, 'tx': -1 };
-    }
-
   }
 
 
@@ -84,7 +60,6 @@ class NodeStatsWatcher {
       return { memTotal: 0, memUsed: 0 };
     }
   }
-
 
   async readCpuStats() {
     try {
