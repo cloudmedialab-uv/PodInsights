@@ -1,4 +1,4 @@
-import {  getAllDockerStats, deleteAllDockerStats } from "../helpers/stats.js";
+import {  getAllDockerStats, deleteAllDockerStats } from "../helpers/dockerStats.js";
 
 const GetDockerStats = async (req, res) => {
 	try {

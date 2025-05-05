@@ -1,6 +1,7 @@
-import Stats from "../models/stats.js";
+import DockerStats from "../models/dockerStats.js";
 
-const getAllStats = async (from, to) => {
+
+const getAllDockerStats = async (from, to) => {
 	try {
 		let mongoQuery = {};
 
@@ -18,7 +19,7 @@ const getAllStats = async (from, to) => {
 				$lte: to,
 			};
 		}
-		const stats = await Stats.find(mongoQuery);
+		const stats = await DockerStats.find(mongoQuery);
 		return stats;
 	} catch (error) {
 		console.error(error);
@@ -26,9 +27,9 @@ const getAllStats = async (from, to) => {
 	}
 };
 
-const deleteAllStats = async () => {
+const deleteAllDockerStats = async () => {
 	try {
-		const res = await Stats.deleteMany({})
+		const res = await DockerStats.deleteMany({})
 		return res
 	} catch (error) {
 		console.error(error)
@@ -36,5 +37,4 @@ const deleteAllStats = async () => {
 	}
 }
 
-
-export { getAllStats, deleteAllStats };
+export { getAllDockerStats, deleteAllDockerStats };

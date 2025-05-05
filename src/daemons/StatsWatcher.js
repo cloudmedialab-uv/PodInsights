@@ -1,6 +1,5 @@
 import Stats from "../models/stats.js";
-import { promises as fs, stat } from "fs";
-import { exec } from "child_process";
+import { promises as fs } from "fs";
 
 import path from "path";
 
@@ -12,14 +11,10 @@ const CPU_INFO_DIR = "/monitor/cpuinfo";
 const BASE_CPU_DIR = "/monitor/cgroup/cpu/";
 const BASE_MEM_DIR = "/monitor/cgroup/memory/";
 
-const RUNTIME_DIR = {
-	"docker": "kubepods.slice",
-	"containerd": "system.slice",
-}
-
 
 const CPU_FILE = "cpuacct.usage";
 const MEM_FILE = "memory.usage_in_bytes";
+const MAX_MEM_FILE = "memory.max_usage_in_bytes";
 
 const CGROUPS_TYPE = true;
 
@@ -39,24 +34,18 @@ class StatsWatcher {
 		StatsWatcher.instance = this;
 	}
 
-	getCpuCores() {
-		return new Promise((resolve, reject) => {
-			exec(
-				`cat ${CPU_INFO_DIR} | grep processor | wc -l`,
-				(error, stdout, stderr) => {
-					if (error) {
-						console.error(`Error al ejecutar el comando: ${error}`);
-						return reject(error);
-					}
-					if (stderr) {
-						console.error(`Error en el comando: ${stderr}`);
-						return reject(stderr);
-					}
-					resolve(parseInt(stdout.trim(), 10));
-				}
-			);
-		});
-	}
+	async getCpuCores() {
+		try {
+		  const text = await fs.readFile(CPU_INFO_DIR, "utf8");
+		  return text
+			.split("\n")
+			.filter(line => line.trim().startsWith("processor"))
+			.length;
+		} catch (err) {
+		  console.error("No pude leer CPU_INFO_DIR:", err);
+		  throw err;
+		}
+	  }
 
 	async getFiles(dir, file) {
 		let files = await fs.readdir(dir, { withFileTypes: true });
@@ -114,12 +103,9 @@ class StatsWatcher {
 		}
 	}
 
-	async getMemUsage(container, runtime) {
+	async getMemUsage(container) {
 		try {
-
-			const BASE_DIR = path.join(BASE_MEM_DIR,RUNTIME_DIR[runtime])
-
-			const dir = await this.getFiles(BASE_DIR, container);
+			const dir = await this.getFiles(BASE_MEM_DIR, container);
 			const mem_usec = await this.readMemUsage(dir);
 
 			const lastData = this.memMap.get(dir);
@@ -139,9 +125,7 @@ class StatsWatcher {
 	async getCpuPercentage(container,runtime) {
 		try {
 
-			const BASE_DIR = path.join(BASE_CPU_DIR,RUNTIME_DIR[runtime])
-
-			const dir = await this.getFiles(BASE_DIR, container);
+			const dir = await this.getFiles(BASE_CPU_DIR, container);
 			const now = Date.now();
 			const usage_usec_1 = await this.readCpuUsage(dir);
 

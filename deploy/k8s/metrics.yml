@@ -117,10 +117,10 @@ spec:
             mountPath: /var/run/docker.sock
           - name: cpuinfo
             mountPath: /monitor/cpuinfo
-          - name: meminfo
-            mountPath: /monitor/meminfo
-          - name:  statsinfo
-            mountPath: /monitor/stats
+          - name: memstats
+            mountPath: /monitor/memstats
+          - name:  cpustats
+            mountPath: /monitor/cpustats
           - name:  cgroups
             mountPath: /monitor/cgroup
           - name: netstats
@@ -132,10 +132,10 @@ spec:
        - name: cpuinfo
          hostPath:
            path: /proc/cpuinfo
-       - name: meminfo
+       - name: memstats
          hostPath:
            path: /proc/meminfo
-       - name: statsinfo
+       - name: cpustats
          hostPath:
            path: /proc/stat
        - name: cgroups

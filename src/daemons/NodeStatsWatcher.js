@@ -2,15 +2,45 @@
 import { promises as fs } from "fs";
 import NodeStats from "../models/nodeStats.js";
 
-const MEMINFO_PATH = "/monitor/meminfo";      
-const PROC_STAT_PATH = "/monitor/stats";   
-const NET_STATS_PATH = "/monitor/netstats";   
+const MEMINFO_PATH = "/monitor/memstats";
+const PROC_STAT_PATH = "/monitor/cpustats";
+const NET_STATS_PATH = "/monitor/netstats";
 
 class NodeStatsWatcher {
+  static instance;
+  
   constructor(nodeName, interval = 5000) {
+
+    if (NodeStatsWatcher.instance) {
+			return NodeStatsWatcher.instance;
+		}
     this.nodeName = nodeName;
     this.interval = interval;
     this.lastCpuStats = null;
+    NodeStatsWatcher.instance = this;
+  }
+
+
+  async readNetworkStats() {
+    try {
+      const dataRx = await fs.readFile(NET_STATS_PATH + "/rx_bytes", "utf8");
+      const dataTx = await fs.readFile(NET_STATS_PATH + "/tx_bytes", "utf8");
+
+
+      if (!dataRx || !dataTx) {
+        throw new Error("Unable to parse network stats");
+      }
+
+      const rx = parseInt(dataRx)
+      const tx = parseInt(dataTx)
+
+      return { 'rx': rx, 'tx': tx };
+
+    } catch (err) {
+      console.log("Error reading networking stats:", err);
+      return { 'rx': -1, 'tx': -1 };
+    }
+
   }
 
 
@@ -67,7 +97,7 @@ class NodeStatsWatcher {
       const parts = cpuLine.split(" ").filter(Boolean).slice(1);
       const values = parts.map(Number);
       const total = values.reduce((a, b) => a + b, 0);
-      const idle = values[3] || 0; 
+      const idle = values[3] || 0;
       return { total, idle };
     } catch (err) {
       console.error("Error reading cpu stats:", err);
@@ -75,8 +105,7 @@ class NodeStatsWatcher {
     }
   }
 
-
-  async computeCpuUsage() {
+  async getCpuPercentage() {
     const currentCpuStats = await this.readCpuStats();
     let usagePercent = 0;
     if (this.lastCpuStats) {
@@ -90,35 +119,42 @@ class NodeStatsWatcher {
     return usagePercent;
   }
 
-  async collectStats() {
+  async getContainerStats() {
     const { memTotal, memUsed } = await this.readMemStats();
-    const cpuUsage = await this.computeCpuUsage();
-    const networkStats =  await this.readNetworkStats()  
- 
+    const cpuUsage = await this.getCpuPercentage();
+    const networkStats = await this.readNetworkStats()
+
     return {
-      nodeName: this.nodeName,
-      memTotal,      
-      memUsed,       
-      cpuUsage,  
+      memTotal,
+      memUsed,
+      cpuUsage,
       networkStats,
-      createdAt: Date.now(),
     };
   }
 
   async updateStats() {
-    const stats = await this.collectStats();
     try {
+      let stats = await this.getContainerStats();
+      stats = {
+        ...stats,
+        nodeName: this.nodeName,
+        createdAt: Date.now(),
+      };
+
+      if (stats.err) {
+        console.log(stats.err);
+        return;
+      }
+
       await new NodeStats(stats).save();
     } catch (err) {
       console.error("Error saving node stats:", err);
     }
   }
 
-  start() {
-
-    this.updateStats();
-    this.loop = setInterval(() => {
-      this.updateStats();
+  async start() {
+    this.loop = setInterval(async() => {
+      await this.updateStats();
     }, this.interval);
   }
 
