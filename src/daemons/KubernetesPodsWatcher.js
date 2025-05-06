@@ -20,15 +20,11 @@ class KubernetesPodsWatcher {
 
 	async updatePods() {
 		try {
-			const {
-				body: { items },
-			} = await this.coreApi.listPodForAllNamespaces(
-				undefined,
-				undefined,
-				`spec.nodeName=${this.nodeName}`,
-				this.labelSelector
-			);
-
+			const {items} = await this.coreApi.listPodForAllNamespaces({
+				fieldSelector: `spec.nodeName=${this.nodeName}`,
+				labelSelector: this.labelSelector,
+			  });
+			  
 			this.pods = items.map((pod) => {
 				if (pod.status.containerStatuses.length > 1) {
 					// Serverless Container
