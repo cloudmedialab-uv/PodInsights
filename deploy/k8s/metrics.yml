@@ -94,16 +94,16 @@ spec:
       serviceAccountName: metrics-sa
       containers:
       - name: metrics-app
-        image: andonisalcedo/podinsights:1.2.0.alpha7
+        image: andonisalcedo/podinsights:1.2.0.beta9
         env:
         - name: STATS_INTERVAL_TIME
           value: "500"
         - name: LABEL
           value: podkubemetrics
         - name: USE_DOCKER
-          value: "false"
+          value: "true"
         - name: USE_NODE_STATS
-          value: "false"
+          value: "true"
         - name: NODE_NAME
           valueFrom:
             fieldRef:

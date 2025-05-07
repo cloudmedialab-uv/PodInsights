@@ -8,61 +8,63 @@ import { getAllStats } from "../helpers/stats.js";
  */
 export const GrafanaSearch = (_req, res) => {
     return res.json([
-        "cpuPercent",
-        "memUsage_usage",
-        "memUsage_current",
-        "netStats_rxBytes",
-        "netStats_txBytes"
+        "docker:cpuPercent",
+        "docker:memUsage_current",
+        "docker:netStats_rxBytes",
+        "docker:netStats_txBytes",
+
+        "node:cpuPercent",
+        "node:memUsage_current",
+        "node:netStats_rxBytes",
+        "node:netStats_txBytes",
+
+        "stats:cpuPercent",
+        "stats:memUsage_current",
+        "stats:netStats_rxBytes",
+        "stats:netStats_txBytes",
+
     ]);
 };
 
-/**
- * /query → para cada métrica solicitada, mapea los datos raw
- * a [valor, timestamp] que Grafana entiende
- */
 export const GrafanaQuery = async (req, res) => {
     const { range, targets } = req.body;
+
     const fromMs = Date.parse(range.from);
     const toMs = Date.parse(range.to);
 
-    // Traemos todos los puntos en el rango
-    const raw = await getAllStats(fromMs, toMs);
+    const series = await Promise.all(targets.map(async ({ target: tt }) => {
+        const [datasource, target] = tt.split(":")
+        const datasources = {
+            "docker": getAllDockerStats,
+            "node": getAllNodeStats,
+            "stats": getAllStats,
+        }
 
-    const series = targets.map(({ target }) => {
-        // Para cada punto, extraemos el campo correcto
+        const raw = await datasources[datasource](fromMs, toMs)
+
+        
         const datapoints = raw.map(pt => {
-            let value = 0;
-            const parts = target.split("_");
-
-            switch (parts[0]) {
-                case "cpuPercent":
-                    value = pt.cpuPercent;
-                    break;
-                case "memUsage":
-                    // pt.memUsage: { usage, current }
-                    value = pt.memUsage?.[parts[1]] ?? 0;
-                    break;
-                case "netStats":
-                    // pt.netStats: { rxBytes, txBytes }
-                    value = pt.netStats?.[parts[1]] ?? 0;
-                    break;
-                default:
-                    value = 0;
-            }
-
-            // timestamp en ms
-            const ts = typeof pt.createdAt === "number"
-                ? pt.createdAt
-                : new Date(pt.createdAt).getTime();
-
-            return [value, ts];
+            return Query(pt, target)
         });
 
-        return { target, datapoints };
-    });
+        return { tt, datapoints };
+    }));
 
+    console.log(series)
     return res.json(series);
 };
+
+const Query = (pt, target) => {
+    const keys = target.split('_');
+    const value = keys.reduce((current, key) => {
+        if (current == null || !(key in current)) {
+            return undefined;
+        }
+        return current[key];
+    }, pt);
+
+    return [value, pt.createdAt];
+}
 
 
 export const GrafanaAnnotations = (_req, res) => res.json([]);

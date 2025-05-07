@@ -1,18 +1,20 @@
-# apiVersion: v1
-# kind: ConfigMap
-# metadata:
-#   name: grafana-datasources
-#   namespace: metrics
-# data:
-#   datasources.yaml: |
-#     apiVersion: 1
-#     datasources:
-#       - name: MiAPI
-#         type: simples-json-datasource
-#         access: proxy
-#         url: http://metrics-service.metrics.svc.cluster.local:8080/grafana
-#         isDefault: true
-# ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: metrics
+data:
+  datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: JSON API
+        type: simpod-json-datasource
+        access: proxy
+        url: http://metrics-service.metrics.svc.cluster.local:8080/grafana
+        isDefault: true
+        jsonData:
+          timeField: createdAt
+---
 apiVersion: v1
 kind: Secret
 metadata:
@@ -54,13 +56,16 @@ spec:
                 secretKeyRef:
                   name: grafana-admin-credentials
                   key: admin-password
-      #     volumeMounts:
-      #       - name: ds-config
-      #         mountPath: /etc/grafana/provisioning/datasources
-      # volumes:
-      #   - name: ds-config
-      #     configMap:
-      #       name: grafana-datasources
+
+            - name: GF_INSTALL_PLUGINS
+              value: "simpod-json-datasource"
+          volumeMounts:
+            - name: ds-config
+              mountPath: /etc/grafana/provisioning/datasources
+      volumes:
+        - name: ds-config
+          configMap:
+            name: grafana-datasources
 ---
 apiVersion: v1
 kind: Service
