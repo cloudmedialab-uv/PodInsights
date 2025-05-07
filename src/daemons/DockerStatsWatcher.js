@@ -34,19 +34,17 @@ class DockerStatsWatcher {
 			let RESULT_CPU_USAGE = (cpuDelta / systemDelta) * 100;
 
 			return {
-				readTime: new Date(stats.read).getTime(),
-				name: stats.name,
 				cpuPercent: RESULT_CPU_USAGE,
-				memUsage: String(stats.memory_stats.usage),
-				memLimit: String(stats.memory_stats.limit),
-				networks: stats.networks,
-				err: null
+				memUsage: {
+					current: parseFloat(stats.memory_stats.usage),
+					limit: parseFloat(stats.memory_stats.limit),
+				}
 			};
 		} catch (err) {
 			return { err };
 		}
 	}
-	
+
 	async updateStats() {
 		this.watcher.pods.forEach(async ({ id }) => {
 			try {

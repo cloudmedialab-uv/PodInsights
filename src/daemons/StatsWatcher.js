@@ -112,11 +112,11 @@ class StatsWatcher {
 
 			if (CGROUPS_TYPE) {
 				//cgroup v1
-				return parseInt(content, 10);
+				return parseInt(content);
 			}
 			//cgroup v2
 			const match = content.match(/usage_usec (\d+)/);
-			return parseInt(match[1], 10);
+			return parseInt(match[1]);
 		} catch (err) {
 			console.error("Error readCpuUsage " + err);
 		}
@@ -131,11 +131,11 @@ class StatsWatcher {
 
 			if (CGROUPS_TYPE) {
 				//cgroup v1
-				return parseInt(content, 10);
+				return parseInt(content);
 			}
 			//cgroup v2
 			const match = content.match(/usage_usec (\d+)/);
-			return parseInt(match[1], 10);
+			return parseInt(match[1]);
 		} catch (err) {
 			console.error("Error readMemUsage ", err);
 		}

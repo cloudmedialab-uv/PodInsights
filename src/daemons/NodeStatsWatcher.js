@@ -33,7 +33,7 @@ class NodeStatsWatcher {
         const rx =  parseInt(dataRx)
         const tx =  parseInt(dataTx)
  
-        return { 'rx' : rx, 'tx': tx };
+        return { 'rxBytes' : rx, 'txBytes': tx };
 
     } catch (err) {
       console.log("Error reading networking stats:", err);
@@ -54,7 +54,7 @@ class NodeStatsWatcher {
       const memTotal = parseInt(memTotalLine.split(":")[1].trim().split(" ")[0], 10) * 1024;
       const memAvailable = parseInt(memAvailableLine.split(":")[1].trim().split(" ")[0], 10) * 1024;
       const memUsed = memTotal - memAvailable;
-      return { memTotal, memUsed };
+      return { limit: memTotal, current: memUsed };
     } catch (err) {
       console.error("Error reading meminfo:", err);
       return { memTotal: 0, memUsed: 0 };
@@ -95,15 +95,14 @@ class NodeStatsWatcher {
   }
 
   async getContainerStats() {
-    const { memTotal, memUsed } = await this.readMemStats();
-    const cpuUsage = await this.getCpuPercentage();
-    const networkStats = await this.readNetworkStats()
+    const memUsage = await this.readMemStats();
+    const cpuPercent = await this.getCpuPercentage();
+    const netStats = await this.readNetworkStats()
 
     return {
-      memTotal,
-      memUsed,
-      cpuUsage,
-      networkStats,
+      memUsage,
+      cpuPercent,
+      netStats,
     };
   }
 

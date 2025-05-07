@@ -42,6 +42,7 @@ class KubernetesPodsWatcher {
 				} else {
 					// Normal Container
 					const [runtime, id] = pod.status.containerStatuses[0].containerID.split("://")
+
 					return {
 						id, runtime,
 						/* gpu: pod.spec.containers.some(
