@@ -1,4 +1,4 @@
-TAG="1.1.0.beta5"
+TAG="1.2.0.alpha7"
 
 docker build . -t  andonisalcedo/podinsights:$TAG
 docker push andonisalcedo/podinsights:$TAG

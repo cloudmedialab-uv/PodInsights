@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
 import router from "./routers/api.js";
+import grafana from "./routers/grafana.js"
 import KubernetesPodsWatcher from "./daemons/KubernetesPodsWatcher.js";
 import DockerStatsWatcher from "./daemons/DockerStatsWatcher.js";
 import NodeStatsWatcher from "./daemons/NodeStatsWatcher.js";
@@ -65,12 +66,11 @@ app.use(cors());
 app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 app.use("/stats", router);
+app.use("/grafana", grafana)
 
 //CONNECT TO DB
 mongoose.connect(url, {
 	auth: { username, password },
-	useNewUrlParser: true,
-	useUnifiedTopology: true,
 });
 
 mongoose.connection.once("open", () => {
