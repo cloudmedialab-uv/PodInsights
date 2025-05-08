@@ -36,7 +36,7 @@ class NodeStatsWatcher {
         return { 'rxBytes' : rx, 'txBytes': tx };
 
     } catch (err) {
-      console.log("Error reading networking stats:", err);
+      console.error("Error reading networking stats:", err);
       return { 'rx': -1, 'tx': -1 };
     }
 

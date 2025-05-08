@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: stress-ng
+  name: stress-ng1
   namespace: default
 spec:
   selector:
     matchLabels:
-      app: stress-ng
+      app: stress-ng1
   replicas: 1
   template:
     metadata:
       labels:
-        app: stress-ng
+        app: stress-ng1
         podkubemetrics: "true"
     spec:
       containers:
         - image: wdhif/stress-ng:latest
-          name: stress-ng
+          name: stress-ng1
           command:
           - sleep
           - "3600"
