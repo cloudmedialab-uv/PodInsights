@@ -13,7 +13,7 @@ const NET_INFO_FILE = "cgroup.procs";
 const NET_FILE = "/net/dev"
 
 const CPU_FILE = "cpu.stat";
-const MEM_FILE = "memory.stat";
+const MEM_FILE = "memory.current";
 const MAX_MEM_FILE = "memory.max_usage_in_bytes";
 
 class CGroupsV2 {
@@ -69,12 +69,14 @@ class CGroupsV2 {
                 path.join(BASE_CPU_DIR, NET_INFO_FILE),
                 "utf8"
             );
-            return text.trim()
+            const firstLine = text.split('\n')[0].trim();
+            return firstLine;
         } catch (err) {
             console.error("No pude leer PROC ID:", err);
             throw err;
         }
     }
+    
 
     async readNetStats(iface = 'eth0') {
         const procId = await this.getProcId()
@@ -116,8 +118,9 @@ class CGroupsV2 {
                 path.join(dir, MEM_FILE),
                 "utf8"
             );
-            const match = content.match(/usage_usec (\d+)/);
-            return parseInt(match[1]);
+            //const match = content.match(/usage_usec (\d+)/);
+            //return parseInt(match[1]);
+            return parseInt(content);
         } catch (err) {
             console.error("Error readMemUsage ", err);
         }
