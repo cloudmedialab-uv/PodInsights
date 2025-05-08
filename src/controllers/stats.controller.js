@@ -7,7 +7,11 @@ const GetStats = async(req, res) => {
 		const fromTime = from ? Number(from) : undefined;
 		const toTime = to ? Number(to) : undefined;
 
-		const stats = await getAllStats(fromTime, toTime);
+		const opts = {
+			from: fromTime,
+			to: toTime
+		}
+		const stats = await getAllStats(opts);
 		return res.json(stats);
 	} catch (err) {
 		console.error(err);

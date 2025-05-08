@@ -1,8 +1,10 @@
 import DockerStats from "../models/dockerStats.js";
 
 
-const getAllDockerStats = async (from, to) => {
+
+const getAllDockerStats = async (opts) => {
 	try {
+		const { from, to, instance } = opts
 		let mongoQuery = {};
 
 		if (from && to) {
@@ -19,6 +21,14 @@ const getAllDockerStats = async (from, to) => {
 				$lte: to,
 			};
 		}
+
+		if (instance) {
+			if (Array.isArray(instance)) {
+				mongoQuery.pod = { $in: instance };
+			} else {
+				mongoQuery.pod = instance;
+			}
+		}
 		const stats = await DockerStats.find(mongoQuery);
 		return stats;
 	} catch (error) {
@@ -26,6 +36,10 @@ const getAllDockerStats = async (from, to) => {
 		throw new Error("Error al obtener los contenedores");
 	}
 };
+
+const getDockerInstances = async () => {
+	return await DockerStats.distinct("pod")
+}
 
 const deleteAllDockerStats = async () => {
 	try {
@@ -37,4 +51,4 @@ const deleteAllDockerStats = async () => {
 	}
 }
 
-export { getAllDockerStats, deleteAllDockerStats };
+export { getAllDockerStats, deleteAllDockerStats, getDockerInstances };

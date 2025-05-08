@@ -5,7 +5,11 @@ const GetNodeStats = async (req, res) => {
     const { from, to } = req.query;
     const fromTime = from ? Number(from) : undefined;
     const toTime = to ? Number(to) : undefined;
-    const stats = await getAllNodeStats(fromTime, toTime);
+    const opts = {
+      from: fromTime,
+      to: toTime
+    }
+    const stats = await getAllNodeStats(opts);
     return res.json(stats);
   } catch (err) {
     console.error(err);

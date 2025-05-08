@@ -64,6 +64,12 @@ new StatsWatcher(watcher, nodeName, statsInterval).start();
 //MIDDLEWARES
 app.use(cors());
 app.use(express.json());
+
+app.use((req, _, next) => {
+	console.log(`→ ${req.method} ${req.originalUrl}`);
+	next();
+});
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 app.use("/stats", router);
 app.use("/grafana", grafana)
