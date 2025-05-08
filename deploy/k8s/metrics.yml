@@ -94,7 +94,7 @@ spec:
       serviceAccountName: metrics-sa
       containers:
       - name: metrics-app
-        image: andonisalcedo/podinsights:1.2.0.beta9
+        image: andonisalcedo/podinsights:1.3.0.alpha5
         env:
         - name: STATS_INTERVAL_TIME
           value: "500"

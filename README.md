@@ -90,14 +90,19 @@ example response:
 
 ```
 [{
-    "_id":"6548fcd0f1993657d9111307",
-    "createdAt":1699282128096,
-    "name":"k8s_user-container-0-deployment-7967975f5b",
-    "memUsage":"2085126144",
-    "memLimit":"101246816256",
-    "cpuPercent":93.49533083645443,
-    "nodeName":"worker13"
-},
+  "_id":"681c0226c33a3a533664911e",
+  "createdAt":1746666022650,
+  "cpuPercent":34,
+  "memUsage":{
+    "usage":44674,
+    "current":311296
+  },"netStats":{
+    "rxBytes":72465096,
+    "txBytes":67273381
+  },
+  "nodeName":"minikube",
+  "pod":"d299bf9bad3bd9eb5292f5c2b0cfa0f507a366669c45cce152724f2fdf3cfc83"
+  },
 ...]
 ```
 
