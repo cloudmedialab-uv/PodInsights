@@ -1,21 +1,38 @@
-// helpers/nodeStats.js
 import NodeStats from "../models/nodeStats.js";
 
-const getAllNodeStats = async (from, to) => {
-  const query = {};
-  if (from && to) {
-    query.createdAt = { $gte: from, $lte: to };
-  } else if (from) {
-    query.createdAt = { $gte: from };
-  } else if (to) {
-    query.createdAt = { $lte: to };
+const getAllNodeStats = async (opts) => {
+  try {
+    const { from, to, instance } = opts
+    let mongoQuery = {};
+    if (from && to) {
+      mongoQuery.createdAt = { $gte: from, $lte: to };
+    } else if (from) {
+      mongoQuery.createdAt = { $gte: from };
+    } else if (to) {
+      mongoQuery.createdAt = { $lte: to };
+    }
+
+    if (instance) {
+      if (Array.isArray(instance)) {
+        mongoQuery.nodeName = { $in: instance };
+      } else {
+        mongoQuery.nodeName = instance;
+      }
+    }
+    return await NodeStats.find(mongoQuery);
+  } catch (err) {
+    console.error(err)
+    throw new Error("Error al obtener las estadisticas de los nodos")
   }
-  return await NodeStats.find(query);
 };
+
+const getNodes = async () => {
+  return await NodeStats.distinct("nodeName")
+}
 
 const deleteAllNodeStats = async () => {
   return await NodeStats.deleteMany({});
 };
 
 
-export { getAllNodeStats, deleteAllNodeStats };
+export { getAllNodeStats, deleteAllNodeStats, getNodes };

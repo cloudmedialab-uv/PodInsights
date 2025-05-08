@@ -1,7 +1,8 @@
 import Stats from "../models/stats.js";
 
-const getAllStats = async (from, to) => {
+const getAllStats = async (opts) => {
 	try {
+		const {from,to,instance} = opts
 		let mongoQuery = {};
 
 		if (from && to) {
@@ -18,6 +19,14 @@ const getAllStats = async (from, to) => {
 				$lte: to,
 			};
 		}
+
+		if (instance) {
+			if (Array.isArray(instance)) {
+				mongoQuery.pod = { $in: instance };
+			} else {
+				mongoQuery.pod = instance;
+			}
+		}
 		const stats = await Stats.find(mongoQuery);
 		return stats;
 	} catch (error) {
@@ -25,6 +34,10 @@ const getAllStats = async (from, to) => {
 		throw new Error("Error al obtener los contenedores");
 	}
 };
+
+const getInstances = async () => {
+	return await Stats.distinct("pod")
+}
 
 const deleteAllStats = async () => {
 	try {
@@ -37,4 +50,4 @@ const deleteAllStats = async () => {
 }
 
 
-export { getAllStats, deleteAllStats };
+export { getAllStats, deleteAllStats, getInstances };
