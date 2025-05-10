@@ -1,5 +1,7 @@
 PodInsights: Kubernetes Resource Monitoring System
 ==================================================
+Documentation:
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/cloudmedialab-uv/PodInsights)
 
 Introduction
 ------------
