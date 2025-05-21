@@ -32,9 +32,7 @@ class StatsWatcher {
 
 	getCGroupType() {
 		try {
-			return execSync('stat -fc %T /monitor/cgroup')
-					 .toString()
-					 .trim();
+			return execSync('cat /monitor/proc/mounts | grep " /monitor/cgroup "').toString().trim().split(" ")[0];
 		  } catch (err) {
 			console.error('Error al ejecutar stat:', err);
 			return '';
