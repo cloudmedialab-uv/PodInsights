@@ -63,10 +63,10 @@ class CGroupsV2 {
         return res.find((p) => p);
     }
 
-    async getProcId() {
+    async getProcId(dir) {
         try {
             const text = await fs.readFile(
-                path.join(BASE_CPU_DIR, NET_INFO_FILE),
+                path.join(dir, NET_INFO_FILE),
                 "utf8"
             );
             const firstLine = text.split('\n')[0].trim();
@@ -76,10 +76,10 @@ class CGroupsV2 {
             throw err;
         }
     }
-    
 
-    async readNetStats(iface = 'eth0') {
-        const procId = await this.getProcId()
+
+    async readNetStats(dir, iface = 'eth0') {
+        const procId = await this.getProcId(dir)
         const data = await fs.readFile(
             path.join(BASE_PROC_DIR, procId, NET_FILE),
             'utf8'
@@ -124,6 +124,13 @@ class CGroupsV2 {
         } catch (err) {
             console.error("Error readMemUsage ", err);
         }
+    }
+
+    async getNetStats(container) {
+        const dir = await this.getFiles(BASE_MEM_DIR, container);
+        const stats = await this.readNetStats(dir)
+
+        return stats
     }
 
     async getMemUsage(container) {
@@ -175,7 +182,7 @@ class CGroupsV2 {
 
         const cpu_percentaje = await this.getCpuPercentage(container);
         const mem_usage = await this.getMemUsage(container, runtime)
-        const net_stats = await this.readNetStats()
+        const net_stats = await this.getNetStats(container)
 
         if (!cpu_percentaje && !mem_usage) {
             return { err: "no cpu usage" }

@@ -120,6 +120,13 @@ class CGroupsV1 {
         }
     }
 
+    async getNetStats(container) {
+        const dir = await this.getFiles(BASE_MEM_DIR, container);
+        const stats = await this.readNetStats(dir)
+
+        return stats
+    }
+
     async getMemUsage(container) {
         try {
             const dir = await this.getFiles(BASE_MEM_DIR, container);
