@@ -12,17 +12,17 @@ class StatsWatcher {
 		if (StatsWatcher.instance) {
 			return StatsWatcher.instance;
 		}
-		
+
 		const cgrouptype = this.getCGroupType()
 
 		console.log(cgrouptype)
 
 		let instance
 		if (!cgrouptype.includes("2")) {
-			instance = new CGroupsV1(watcher,nodeName,interval)
+			instance = new CGroupsV1(watcher, nodeName, interval)
 			console.log("USING CGROUPS v1")
-		}else {
-			instance = new CGroupsV2(watcher,nodeName,interval)
+		} else {
+			instance = new CGroupsV2(watcher, nodeName, interval)
 			console.log("USING CGROUPS v2")
 		}
 
@@ -33,10 +33,10 @@ class StatsWatcher {
 	getCGroupType() {
 		try {
 			return execSync('cat /monitor/proc/mounts | grep " /monitor/cgroup "').toString().trim().split(" ")[0];
-		  } catch (err) {
+		} catch (err) {
 			console.error('Error al ejecutar stat:', err);
 			return '';
-		  }
+		}
 	}
 }
 

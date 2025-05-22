@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  GrafanaSearch,
+  GrafanaMetrics,
   GrafanaQuery,
   GrafanaAnnotations,
   GrafanaTagKeys,
@@ -12,7 +12,7 @@ const router = Router();
 // health check
 router.get("/", (_req, res) => res.json({}));
 
-router.post("/metrics", GrafanaSearch);
+router.post("/metrics", GrafanaMetrics);
 router.post("/query", GrafanaQuery);
 
 router.post("/annotations", GrafanaAnnotations);   
