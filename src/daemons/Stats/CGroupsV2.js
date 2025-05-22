@@ -127,10 +127,16 @@ class CGroupsV2 {
     }
 
     async getNetStats(container) {
-        const dir = await this.getFiles(BASE_MEM_DIR, container);
-        const stats = await this.readNetStats(dir)
+        try {
+            const dir = await this.getFiles(BASE_MEM_DIR, container);
+            const stats = await this.readNetStats(dir)
 
-        return stats
+            return stats
+
+        }catch(err) {
+            return {err}
+        }
+
     }
 
     async getMemUsage(container) {
@@ -148,7 +154,7 @@ class CGroupsV2 {
 
             return { usage: mem_usec - lastData.mem_usec, current: mem_usec }
         } catch (err) {
-            console.error("Error getMemUsage", err);
+            return {err}
         }
     }
 
@@ -173,6 +179,7 @@ class CGroupsV2 {
             return (delta_usec / (delta_time * 1000 * this.cores)) / 10;
         } catch (err) {
             console.error("Error getCPU", err);
+            return {err}
         }
     }
 
@@ -184,9 +191,6 @@ class CGroupsV2 {
         const mem_usage = await this.getMemUsage(container, runtime)
         const net_stats = await this.getNetStats(container)
 
-        if (!cpu_percentaje && !mem_usage) {
-            return { err: "no cpu usage" }
-        }
         return { cpuPercent: cpu_percentaje, memUsage: mem_usage, netStats: net_stats }
     }
 
